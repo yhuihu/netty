@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * The default {@link ChannelPipeline} implementation.  It is usually created
  * by a {@link Channel} implementation when the {@link Channel} is created.
  */
+// channel handler 处理链
 public class DefaultChannelPipeline implements ChannelPipeline {
 
     static final InternalLogger logger = InternalLoggerFactory.getInstance(DefaultChannelPipeline.class);
@@ -61,7 +62,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     private static final AtomicReferenceFieldUpdater<DefaultChannelPipeline, MessageSizeEstimator.Handle> ESTIMATOR =
             AtomicReferenceFieldUpdater.newUpdater(
                     DefaultChannelPipeline.class, MessageSizeEstimator.Handle.class, "estimatorHandle");
+    //  channel handler 上下文
     final AbstractChannelHandlerContext head;
+//    尾
     final AbstractChannelHandlerContext tail;
 
     private final Channel channel;
@@ -93,8 +96,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         this.channel = ObjectUtil.checkNotNull(channel, "channel");
         succeededFuture = new SucceededChannelFuture(channel, null);
         voidPromise =  new VoidChannelPromise(channel, true);
-
+        // 初始化上下文
         tail = new TailContext(this);
+        // 初始化上下文
         head = new HeadContext(this);
 
         head.next = tail;
@@ -200,7 +204,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         final AbstractChannelHandlerContext newCtx;
         synchronized (this) {
             checkMultiplicity(handler);
-
+            // 新的上下文
             newCtx = newContext(group, filterName(name, handler), handler);
 
             addLast0(newCtx);
@@ -810,6 +814,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return buf.toString();
     }
 
+    /**
+     * 可以看作很多东西都是 这个DefaultChannelPipeline来进行链式回调 它实现内置了几个东西
+     * @return
+     */
     @Override
     public final ChannelPipeline fireChannelRegistered() {
         AbstractChannelHandlerContext.invokeChannelRegistered(head);
@@ -1331,6 +1339,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         @Override
         public void bind(
                 ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise) {
+            // unsafe 看到木有
             unsafe.bind(localAddress, promise);
         }
 

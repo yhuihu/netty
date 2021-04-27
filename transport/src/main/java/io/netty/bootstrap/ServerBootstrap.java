@@ -50,7 +50,9 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
     // purposes.
     private final Map<ChannelOption<?>, Object> childOptions = new LinkedHashMap<ChannelOption<?>, Object>();
     private final Map<AttributeKey<?>, Object> childAttrs = new ConcurrentHashMap<AttributeKey<?>, Object>();
+    // 这个config
     private final ServerBootstrapConfig config = new ServerBootstrapConfig(this);
+    // 工作的
     private volatile EventLoopGroup childGroup;
     private volatile ChannelHandler childHandler;
 
@@ -141,7 +143,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             currentChildOptions = childOptions.entrySet().toArray(EMPTY_OPTION_ARRAY);
         }
         final Entry<AttributeKey<?>, Object>[] currentChildAttrs = childAttrs.entrySet().toArray(EMPTY_ATTRIBUTE_ARRAY);
-
+        // 处理 客户端连接的 NioEventLoopGroup
         p.addLast(new ChannelInitializer<Channel>() {
             @Override
             public void initChannel(final Channel ch) {
@@ -150,10 +152,11 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
                 if (handler != null) {
                     pipeline.addLast(handler);
                 }
-
+                // 添加boos handler 主要是处理连接事件
                 ch.eventLoop().execute(new Runnable() {
                     @Override
                     public void run() {
+//                        这是boss端的
                         pipeline.addLast(new ServerBootstrapAcceptor(
                                 ch, currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));
                     }
@@ -204,17 +207,27 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             };
         }
 
+        /**
+         * 刚才我给看了 连接事件和读取事件都是会走read的对吧 对啊  boos 的select有连接之后就会走到这里
+         *
+         * 这里初始化新的连接 难怪 他妈的 读了才初始化？ 肯定是要先处理连接啊 再处理请求啊   那每个连接都要把handler放进去 那不然   我一直以为他只加一次  后面都用一样的。。。。。。。。
+         * @param ctx
+         * @param msg
+         */
         @Override
         @SuppressWarnings("unchecked")
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
+            // 直接转换为Channel
             final Channel child = (Channel) msg;
-
+            //childHandler
+            // handler在这里加
             child.pipeline().addLast(childHandler);
 
             setChannelOptions(child, childOptions, logger);
             setAttributes(child, childAttrs);
 
             try {
+                // 将Channel 注册到 work组
                 childGroup.register(child).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {

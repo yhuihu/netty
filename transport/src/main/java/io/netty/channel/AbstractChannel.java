@@ -47,6 +47,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     private final Channel parent;
     private final ChannelId id;
     private final Unsafe unsafe;
+    // 所以说这个很重要
     private final DefaultChannelPipeline pipeline;
     private final VoidChannelPromise unsafeVoidPromise = new VoidChannelPromise(this, false);
     private final CloseFuture closeFuture = new CloseFuture(this);
@@ -71,7 +72,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     protected AbstractChannel(Channel parent) {
         this.parent = parent;
         id = newId();
+        // 这个unsafe记住
         unsafe = newUnsafe();
+        // 初始化handler 处理链
         pipeline = newChannelPipeline();
     }
 
@@ -279,6 +282,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         return this;
     }
 
+    // 最终channle 都是调用 链 对吧？ 组合进来了 委托模式
     @Override
     public ChannelFuture write(Object msg) {
         return pipeline.write(msg);
@@ -291,6 +295,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
     @Override
     public ChannelFuture writeAndFlush(Object msg) {
+        // 从链子的最tail往前面走
         return pipeline.writeAndFlush(msg);
     }
 
@@ -463,11 +468,12 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
 
             AbstractChannel.this.eventLoop = eventLoop;
-
+            //当前线程是否在线程池中
             if (eventLoop.inEventLoop()) {
                 register0(promise);
             } else {
                 try {
+                    // 线程池操作
                     eventLoop.execute(new Runnable() {
                         @Override
                         public void run() {
@@ -502,6 +508,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 pipeline.invokeHandlerAddedIfNeeded();
 
                 safeSetSuccess(promise);
+                //处理注册事件
                 pipeline.fireChannelRegistered();
                 // Only fire a channelActive if the channel has never been registered. This prevents firing
                 // multiple channel actives if the channel is deregistered and re-registered.

@@ -90,6 +90,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                 int size = readBuf.size();
                 for (int i = 0; i < size; i ++) {
                     readPending = false;
+                    // pipeline开始处理连接事件
                     pipeline.fireChannelRead(readBuf.get(i));
                 }
                 readBuf.clear();

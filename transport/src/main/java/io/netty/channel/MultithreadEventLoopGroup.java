@@ -33,7 +33,9 @@ import java.util.concurrent.ThreadFactory;
 public abstract class MultithreadEventLoopGroup extends MultithreadEventExecutorGroup implements EventLoopGroup {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(MultithreadEventLoopGroup.class);
-
+    /**
+     * 默认线程池数量 CPU核数 * 2
+     */
     private static final int DEFAULT_EVENT_LOOP_THREADS;
 
     static {
@@ -72,7 +74,7 @@ public abstract class MultithreadEventLoopGroup extends MultithreadEventExecutor
     protected ThreadFactory newDefaultThreadFactory() {
         return new DefaultThreadFactory(getClass(), Thread.MAX_PRIORITY);
     }
-
+    // 选择事件循环Loop
     @Override
     public EventLoop next() {
         return (EventLoop) super.next();

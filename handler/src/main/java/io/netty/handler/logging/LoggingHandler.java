@@ -218,6 +218,7 @@ public class LoggingHandler extends ChannelDuplexHandler {
         if (logger.isEnabled(internalLevel)) {
             logger.log(internalLevel, format(ctx, "BIND", localAddress));
         }
+        // 继续调用上下文
         ctx.bind(localAddress, promise);
     }
 

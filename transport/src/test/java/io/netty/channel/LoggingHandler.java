@@ -45,6 +45,7 @@ final class LoggingHandler implements ChannelInboundHandler, ChannelOutboundHand
     public void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise)
             throws Exception {
         log(Event.BIND, "localAddress=" + localAddress);
+        // 又调用上下文
         ctx.bind(localAddress, promise);
     }
 

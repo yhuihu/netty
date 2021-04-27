@@ -73,7 +73,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     private static final AtomicReferenceFieldUpdater<SingleThreadEventExecutor, ThreadProperties> PROPERTIES_UPDATER =
             AtomicReferenceFieldUpdater.newUpdater(
                     SingleThreadEventExecutor.class, ThreadProperties.class, "threadProperties");
-
+    // 存放执行的其他任务
     private final Queue<Runnable> taskQueue;
 
     private volatile Thread thread;
@@ -556,6 +556,11 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         }
     }
 
+    /**
+     * 单个线程
+     * @param thread
+     * @return
+     */
     @Override
     public boolean inEventLoop(Thread thread) {
         return thread == this.thread;
@@ -822,7 +827,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     public void lazyExecute(Runnable task) {
         execute(ObjectUtil.checkNotNull(task, "task"), false);
     }
-
+    // 他是NioEventLoop的父类 最后会调用到这里执行线程调用
     private void execute(Runnable task, boolean immediate) {
         boolean inEventLoop = inEventLoop();
         addTask(task);
@@ -986,6 +991,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
                 boolean success = false;
                 updateLastExecutionTime();
                 try {
+                    // SingleThreadEventExecutor 就是NioEventLoop里面的run
                     SingleThreadEventExecutor.this.run();
                     success = true;
                 } catch (Throwable t) {

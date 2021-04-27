@@ -71,13 +71,13 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
         if (nThreads <= 0) {
             throw new IllegalArgumentException(String.format("nThreads: %d (expected: > 0)", nThreads));
         }
-
+        // 执行器
         if (executor == null) {
             executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
         }
 
         children = new EventExecutor[nThreads];
-
+        // nThreads  线程数
         for (int i = 0; i < nThreads; i ++) {
             boolean success = false;
             try {
@@ -107,7 +107,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
                 }
             }
         }
-
+        // 负载均衡器   就是每次他使用完了都会掉一次next
         chooser = chooserFactory.newChooser(children);
 
         final FutureListener<Object> terminationListener = new FutureListener<Object>() {
@@ -120,6 +120,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
         };
 
         for (EventExecutor e: children) {
+            // 添加监听器
             e.terminationFuture().addListener(terminationListener);
         }
 
@@ -131,7 +132,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
     protected ThreadFactory newDefaultThreadFactory() {
         return new DefaultThreadFactory(getClass());
     }
-
+    // chooser 负载均衡的
     @Override
     public EventExecutor next() {
         return chooser.next();

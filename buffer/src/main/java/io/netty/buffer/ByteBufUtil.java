@@ -71,9 +71,11 @@ public final class ByteBufUtil {
             (int) CharsetUtil.encoder(CharsetUtil.UTF_8).maxBytesPerChar();
 
     static final int WRITE_CHUNK_SIZE = 8192;
+    //静态代码块中进行初始化
     static final ByteBufAllocator DEFAULT_ALLOCATOR;
 
     static {
+        // 判断当前程序是不是安卓程序，如果不是安卓程序则采用pooled池化方式
         String allocType = SystemPropertyUtil.get(
                 "io.netty.allocator.type", PlatformDependent.isAndroid() ? "unpooled" : "pooled");
         allocType = allocType.toLowerCase(Locale.US).trim();

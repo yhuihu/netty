@@ -15,19 +15,36 @@
  */
 package io.netty.example.echo;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.CharsetUtil;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Handler implementation for the echo server.
  */
 @Sharable
 public class EchoServerHandler extends ChannelInboundHandlerAdapter {
-
+    private ExecutorService executorService = Executors.newFixedThreadPool(100);
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        ctx.write(msg);
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws InterruptedException {
+//        ctx.write(msg);
+        ByteBuf byteBuf = (ByteBuf) msg;
+        Thread.sleep(1000);
+        System.out.println("客户端发送的消息是：" + byteBuf.toString(CharsetUtil.UTF_8));
+        final Channel xt = ctx.channel();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                xt.writeAndFlush("hello Client");
+            }
+        });
+
     }
 
     @Override

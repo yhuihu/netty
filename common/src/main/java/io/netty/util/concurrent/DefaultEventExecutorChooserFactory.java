@@ -25,7 +25,9 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @UnstableApi
 public final class DefaultEventExecutorChooserFactory implements EventExecutorChooserFactory {
-
+    /**
+     * 相当于负载均衡选择器
+     */
     public static final DefaultEventExecutorChooserFactory INSTANCE = new DefaultEventExecutorChooserFactory();
 
     private DefaultEventExecutorChooserFactory() { }

@@ -84,6 +84,11 @@ public abstract class SingleThreadEventLoop extends SingleThreadEventExecutor im
     @Override
     public ChannelFuture register(final ChannelPromise promise) {
         ObjectUtil.checkNotNull(promise, "promise");
+        //  unsafe开始注册 相当于封装了nio 的channle 在它上面操作
+        // 这里就用到了多态
+        // 由不同channel的unsfate来进行注册
+//        都是走的这一块，不对，这是boss吧
+        // 继续走channle的unsafe register 对应channle unsafe不同 逻辑不同
         promise.channel().unsafe().register(this, promise);
         return promise;
     }
